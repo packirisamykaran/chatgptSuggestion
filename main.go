@@ -38,10 +38,11 @@ func main() {
 
 func getSuggestions(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	enableCors(&w)
 
 	querydata, _ := io.ReadAll(r.Body)
+
+	fmt.Printf("%v", querydata)
 	query := string(querydata)
 	querySplit := strings.Split(query, " ")
 	query = strings.Join(querySplit, "%20")
@@ -82,4 +83,8 @@ func getSuggestions(w http.ResponseWriter, r *http.Request) {
 
 func serverRunning(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Server is running!\n")
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
