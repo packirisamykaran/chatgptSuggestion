@@ -6,16 +6,16 @@ import axios from "axios";
 function App() {
     useEffect(() => {
         let result;
-        (async function () {
-            result = await axios.get(
-                process.env.REACT_APP_BACKEND_ENDPOINT + "getSuggestion",
-                {
-                    query: "thanos",
-                }
-            );
-        })();
 
-        console.log(result);
+        (async function () {
+            result = await axios.post(
+                process.env.REACT_APP_BACKEND_ENDPOINT + "getSuggestion",
+
+                { result: "tesst" }
+            );
+
+            console.log(result);
+        })();
     });
 
     return <div className="App">{process.env.REACT_APP_BACKEND_ENDPOINT}</div>;

@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
-	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 type Suggestion struct {
@@ -21,10 +20,9 @@ type Values struct {
 
 func main() {
 
-	http.HandleFunc("/", serverRunning)
-	http.HandleFunc("/getSuggestion", getSuggestions)
+	r := Router()
 
-	err := http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8000", r)
 
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Printf("server closed\n")
@@ -36,55 +34,74 @@ func main() {
 	// getSuggestions("would chatgpt be")
 }
 
+type Data struct {
+	Result string `json:"result"`
+}
+
+func Router() *mux.Router {
+	r := mux.NewRouter()
+	r.HandleFunc("/getSuggestion", getSuggestions).Methods("POST", "OPTIONS")
+
+	return r
+}
+
 func getSuggestions(w http.ResponseWriter, r *http.Request) {
 
 	enableCors(&w)
 
-	querydata, _ := io.ReadAll(r.Body)
+	var body Data
 
-	fmt.Printf("%v", querydata)
-	query := string(querydata)
-	querySplit := strings.Split(query, " ")
-	query = strings.Join(querySplit, "%20")
+	_ = json.NewDecoder(r.Body).Decode(&body)
 
-	url := "http://suggestqueries.google.com/complete/search?client=firefox&q=" + query
+	fmt.Printf("%+v", body.Result)
+	// query := string(querydata)
+	// querySplit := strings.Split(query, " ")
+	// query = strings.Join(querySplit, "%20")
 
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
+	data := Data{
+		Result: "hello",
 	}
 
-	defer resp.Body.Close()
-	//We Read the response body on the line below.
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	json.NewEncoder(w).Encode(data)
 
-	var arr []interface{}
+	// url := "http://suggestqueries.google.com/complete/search?client=firefox&q=" + query
 
-	err = json.Unmarshal(body, &arr)
+	// resp, err := http.Get(url)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	if err != nil {
-		fmt.Println("error:", err)
-	}
+	// defer resp.Body.Close()
+	// //We Read the response body on the line below.
+	// body, err := io.ReadAll(resp.Body)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	var sug []string
+	// var arr []interface{}
 
-	for _, v := range arr[1].([]interface{}) { // use type assertion to loop over []interface{}
+	// err = json.Unmarshal(body, &arr)
 
-		val := v.(string)
-		sug = append(sug, val)
-	}
+	// if err != nil {
+	// 	fmt.Println("error:", err)
+	// }
 
-	fmt.Println(sug)
+	// var sug []string
 
-}
+	// for _, v := range arr[1].([]interface{}) { // use type assertion to loop over []interface{}
 
-func serverRunning(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Server is running!\n")
+	// 	val := v.(string)
+	// 	sug = append(sug, val)
+	// }
+
+	// fmt.Println(sug)
+
 }
 
 func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Context-Type", "application/json")
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 }
