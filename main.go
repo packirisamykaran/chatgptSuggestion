@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -25,6 +26,21 @@ type Values struct {
 func main() {
 
 	r := Router()
+
+	url := "https://aeona3.p.rapidapi.com/?text=hi&userId=12312312312"
+
+	req, _ := http.NewRequest("GET", url, nil)
+
+	req.Header.Add("X-RapidAPI-Key", "57ac9072ddmsh5d7d67413892777p198777jsne057d4dfa079")
+	req.Header.Add("X-RapidAPI-Host", "aeona3.p.rapidapi.com")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+	body, _ := ioutil.ReadAll(res.Body)
+
+	fmt.Println(res)
+	fmt.Println(string(body))
 
 	err := http.ListenAndServe(":8000", r)
 
